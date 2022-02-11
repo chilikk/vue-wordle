@@ -43,11 +43,11 @@ onUnmounted(() => {
 
 function onKey(key: string) {
   if (!allowInput) return
-  if (/^[a-zA-Z]$/.test(key)) {
+  if (/^[а-яА-ЯёЁ]$/.test(key)) {
     fillTile(key.toLowerCase())
   } else if (key === 'Backspace') {
     clearTile()
-  } else if (key === 'Enter') {
+  } else if (key === 'Enter' || key === 'Энтер') {
     completeRow()
   }
 }
@@ -179,13 +179,7 @@ function genResultGrid() {
     </div>
   </Transition>
   <header>
-    <h1>VVORDLE</h1>
-    <a
-      id="source-link"
-      href="https://github.com/yyx990803/vue-wordle"
-      target="_blank"
-      >Source</a
-    >
+    <h1>СЛОВРЬ</h1>
   </header>
   <div id="board">
     <div
