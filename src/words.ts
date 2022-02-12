@@ -1,6 +1,6 @@
 const defaultMessage = ' Using word of the day instead.'
 
-export function getWordOfTheDay() {
+export function getQuery() {
   if (location.search) {
     try {
       const query = atob(location.search.slice(1))
@@ -13,15 +13,23 @@ export function getWordOfTheDay() {
       alert(`Malformed encoded word query. ${defaultMessage}`)
     }
   }
+  return null
+}
 
-  const now = new Date()
+export function getDay(now: Date) {
   const start = new Date(2022, 0, 0)
   const diff = Number(now) - Number(start)
   let day = Math.floor(diff / (1000 * 60 * 60 * 24))
-  while (day >= answers.length) {
-    day -= answers.length
+  day %= answers.length
+  return day
+}
+
+export function getWordOfTheDay(input) {
+  if (typeof input === 'number') {
+      return answers[input]
+  } else if (typeof input === 'string') {
+      return input
   }
-  return answers[day]
 }
 
 // copied from Wordle source

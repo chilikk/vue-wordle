@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { VueCookieNext } from 'vue-cookie-next'
 import Game from './Game.vue'
 import './game.css'
 
@@ -12,4 +13,6 @@ function onResize() {
   document.body.style.setProperty('--vh', window.innerHeight + 'px')
 }
 
-createApp(Game).mount('#app')
+const app = createApp(Game)
+app.use(VueCookieNext)
+app.mount('#app')

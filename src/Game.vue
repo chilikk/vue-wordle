@@ -1,14 +1,27 @@
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
-import { getWordOfTheDay, allWords } from './words'
+import { useCookie } from 'vue-cookie-next'
+import { getQuery, getDay, getWordOfTheDay, allWords } from './words'
 import Keyboard from './Keyboard.vue'
 import { LetterState } from './types'
 
+let gameid = $ref('')
+
+let query = getQuery()
+if (query === null) {
+    const now = new Date()
+    gameid = now.toLocaleDateString('sv-SE')
+    query = getDay(now)
+} else {
+    gameid = query
+}
+
+
 // Get word of the day
-const answer = getWordOfTheDay()
+const answer = getWordOfTheDay(query)
 
 // Board state. Each tile is represented as { letter, state }
-const board = $ref(
+let board = $ref(
   Array.from({ length: 6 }, () =>
     Array.from({ length: 5 }, () => ({
       letter: '',
@@ -17,21 +30,66 @@ const board = $ref(
   )
 )
 
+
 // Current active row.
 let currentRowIndex = $ref(0)
 const currentRow = $computed(() => board[currentRowIndex])
 
 // Feedback state: message and shake
 let message = $ref('')
+let copy = $ref(false)
 let grid = $ref('')
 let shakeRowIndex = $ref(-1)
 let success = $ref(false)
+let immediateSuccess = false
+let finished = $ref(false)
+let textToCopy = $ref('')
 
 // Keep track of revealed letters for the virtual keyboard
-const letterStates: Record<string, LetterState> = $ref({})
+let letterStates: Record<string, LetterState> = $ref({})
+
+const cookie = useCookie()
+let cont = true
+if (typeof query === 'number' && cookie.getCookie('query') == query) {
+    cont = readState(cookie)
+} else {
+    cookie.setCookie('query', query)
+    saveState(cookie)
+}
+
+function saveState(cookie) {
+    cookie.setCookie('state', board)
+    cookie.setCookie('currentRowIndex', currentRowIndex)
+    cookie.setCookie('letterStates', letterStates)
+    cookie.setCookie('success', immediateSuccess)
+    cookie.setCookie('finished', finished)
+}
+function readState(cookie) {
+    const storedState = cookie.getCookie('state')
+    if (storedState != null) {
+        board = JSON.parse(storedState)
+    }
+    const storedCurrentRowIndex = cookie.getCookie('currentRowIndex')
+    if (storedCurrentRowIndex != null) {
+        currentRowIndex = storedCurrentRowIndex
+    }
+    const storedLetterStates = cookie.getCookie('letterStates')
+    if (storedLetterStates != null) {
+        letterStates = storedLetterStates
+    }
+    const storedSuccess = cookie.getCookie('success')
+    if (storedSuccess != null) {
+        immediateSuccess = (storedSuccess === 'true')
+    }
+    const storedFinished = cookie.getCookie('finished')
+    if (storedFinished != null && storedFinished === 'true') {
+        showSuccessMessage(immediateSuccess)
+    }
+    return storedFinished == null || storedFinished === 'false'
+}
 
 // Handle keyboard input.
-let allowInput = true
+let allowInput = cont
 
 const onKeyup = (e: KeyboardEvent) => onKey(e.key)
 
@@ -110,16 +168,8 @@ function completeRow() {
     allowInput = false
     if (currentRow.every((tile) => tile.state === LetterState.CORRECT)) {
       // yay!
-      setTimeout(() => {
-        grid = genResultGrid()
-        showMessage(
-          ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'][
-            currentRowIndex
-          ],
-          -1
-        )
-        success = true
-      }, 1600)
+      immediateSuccess = true
+      showSuccessMessage(true)
     } else if (currentRowIndex < board.length - 1) {
       // go the next row
       currentRowIndex++
@@ -128,21 +178,45 @@ function completeRow() {
       }, 1600)
     } else {
       // game over :(
-      setTimeout(() => {
-        showMessage(answer.toUpperCase(), -1)
-      }, 1600)
+      showSuccessMessage(false)
     }
+    saveState(cookie)
   } else {
     shake()
     showMessage('Not enough letters')
   }
 }
 
-function showMessage(msg: string, time = 1000) {
+function showSuccessMessage(good: boolean) {
+    finished = true
+    if (good) {
+      setTimeout(() => {
+        grid = genResultGrid()
+        let msg = ['ЧИТЕР', 'Вау!', 'Впечатляюще', 'Отлично', 'Неплохо', 'Фух'][
+                    currentRowIndex
+                  ]
+        let copystr = 'Словрь ' + gameid + ': ' + msg + '\r\n' + grid
+        showMessage(msg, copystr, -1)
+        success = true
+      }, 1600)
+    } else {
+      setTimeout(() => {
+        let msg = 'Потрачено! Ответ: ' + answer.toUpperCase()
+        let copystr = 'Словрь ' + gameid + ': ' + msg
+        showMessage(msg, copystr, -1)
+      }, 1600)
+    }
+}
+
+function showMessage(msg: string, copystr: string = '', time = 1000) {
   message = msg
+  copy = copystr != ''
+  textToCopy = copystr
   if (time > 0) {
     setTimeout(() => {
       message = ''
+      copy = false
+      textToCopy = ''
     }, time)
   }
 }
@@ -176,6 +250,13 @@ function genResultGrid() {
     <div class="message" v-if="message">
       {{ message }}
       <pre v-if="grid">{{ grid }}</pre>
+      <div v-if="copy">
+        <button class="copy">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#fff">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+        </button>
+      </div>
     </div>
   </Transition>
   <header>
@@ -239,6 +320,19 @@ function genResultGrid() {
 }
 .message.v-leave-to {
   opacity: 0;
+}
+.copy {
+  width: 50px;
+  margin: 10px 0 0;
+  background-color: inherit;
+  border: inherit;
+  border-radius: 8px;
+}
+.copy:active {
+  background-color: #000;
+}
+#copyText {
+  display: none;
 }
 .row {
   display: grid;
