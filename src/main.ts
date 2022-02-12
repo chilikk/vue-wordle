@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { VueCookieNext } from 'vue-cookie-next'
+import { VueClipboard } from '@soerenmartius/vue3-clipboard'
 import Game from './Game.vue'
 import './game.css'
 
@@ -15,4 +16,5 @@ function onResize() {
 
 const app = createApp(Game)
 app.use(VueCookieNext)
+app.use(VueClipboard)
 app.mount('#app')
