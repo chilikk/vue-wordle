@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
 import { useCookie } from 'vue-cookie-next'
-import { getQuery, getDay, getWordOfTheDay, allWords } from './words'
+import { getQuery, getDay, getWordOfTheDay } from './words'
+import { allWords } from './all_words'
 import Keyboard from './Keyboard.vue'
 import { LetterState } from './types'
 
