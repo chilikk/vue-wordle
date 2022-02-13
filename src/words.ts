@@ -3,7 +3,9 @@ const defaultMessage = ' Using word of the day instead.'
 export function getQuery() {
   if (location.search) {
     try {
-      const query = atob(location.search.slice(1))
+      const queryraw = atob(location.search.slice(1))
+      const queryutf8arr = Uint8Array.from(queryraw, c => c.charCodeAt(0))
+      const query = new TextDecoder().decode(queryutf8arr)
       if (query.length !== 5) {
         alert(`Incorrect word length from encoded query. ${defaultMessage}`)
       } else {
@@ -17,16 +19,16 @@ export function getQuery() {
 }
 
 export function getDay(now: Date) {
-  const start = new Date(2022, 0, 0)
+  const start = new Date(2022, 1, 13)
   const diff = Number(now) - Number(start)
   let day = Math.floor(diff / (1000 * 60 * 60 * 24))
   day %= answers.length
-  return day
+  return day+1
 }
 
 export function getWordOfTheDay(input) {
   if (typeof input === 'number') {
-      return answers[input]
+      return answers[input-1]
   } else if (typeof input === 'string') {
       return input
   }
@@ -34,8 +36,11 @@ export function getWordOfTheDay(input) {
 
 // copied from Wordle source
 const answers = [
-    'когда',
+    'шёпот',
+    'энтер',
     'вдруг',
+    'бельё',
+    'когда',
     'может',
     'очень',
     'опять',
@@ -95,7 +100,7 @@ const answers = [
     'домой',
     'денег',
     'собой',
-    'самоё',
+    'самое',
     'верно',
     'самый',
     'места',
@@ -227,7 +232,6 @@ const answers = [
     'черты',
     'молчи',
     'полка',
-    'бельё',
     'земля',
     'грубо',
     'графа',
@@ -424,7 +428,6 @@ const answers = [
     'плача',
     'песня',
     'купец',
-    'шёпот',
     'успех',
     'тянет',
     'стена',
@@ -457,6 +460,7 @@ const answers = [
     'черно',
     'халат',
     'слева',
+    'бельё',
     'лукич',
     'долой',
     'шоссе',
