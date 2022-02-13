@@ -132,7 +132,7 @@ function clearTile() {
 function completeRow() {
   if (currentRow.every((tile) => tile.letter)) {
     const guess = currentRow.map((tile) => tile.letter).join('')
-    if (!allWords.includes(guess) && guess !== answer) {
+    if (guess !== answer && ! wordInDictionary(guess)) {
       shake()
       showMessage(`Not in word list`)
       return
@@ -186,6 +186,18 @@ function completeRow() {
     shake()
     showMessage('Not enough letters')
   }
+}
+
+function wordInDictionary(word: string) {
+    var pointer = allWords
+    for (var i in word) {
+        if (word[i] in pointer) {
+            pointer = pointer[word[i]]
+        } else {
+            return false
+        }
+    }
+    return true
 }
 
 function showSuccessMessage(good: boolean) {
