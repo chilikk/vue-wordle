@@ -58,30 +58,30 @@ if (typeof query === 'number' && cookie.getCookie('query') == query) {
 }
 
 function saveState(cookie) {
-    cookie.setCookie('state', board)
-    cookie.setCookie('currentRowIndex', currentRowIndex)
-    cookie.setCookie('letterStates', letterStates)
-    cookie.setCookie('success', immediateSuccess)
-    cookie.setCookie('finished', finished)
+    cookie.setCookie('slovr_board', JSON.stringify(board))
+    cookie.setCookie('slovr_currentRowIndex', currentRowIndex)
+    cookie.setCookie('slovr_letterStates', letterStates)
+    cookie.setCookie('slovr_success', immediateSuccess)
+    cookie.setCookie('slovr_finished', finished)
 }
 function readState(cookie) {
-    const storedState = cookie.getCookie('state')
+    const storedState = cookie.getCookie('slovr_board')
     if (storedState != null) {
         board = JSON.parse(storedState)
     }
-    const storedCurrentRowIndex = cookie.getCookie('currentRowIndex')
+    const storedCurrentRowIndex = cookie.getCookie('slovr_currentRowIndex')
     if (storedCurrentRowIndex != null) {
-        currentRowIndex = storedCurrentRowIndex
+        currentRowIndex = Number(storedCurrentRowIndex)
     }
-    const storedLetterStates = cookie.getCookie('letterStates')
+    const storedLetterStates = cookie.getCookie('slovr_letterStates')
     if (storedLetterStates != null) {
         letterStates = storedLetterStates
     }
-    const storedSuccess = cookie.getCookie('success')
+    const storedSuccess = cookie.getCookie('slovr_success')
     if (storedSuccess != null) {
         immediateSuccess = (storedSuccess === 'true')
     }
-    const storedFinished = cookie.getCookie('finished')
+    const storedFinished = cookie.getCookie('slovr_finished')
     if (storedFinished != null && storedFinished === 'true') {
         showSuccessMessage(immediateSuccess)
     }
@@ -195,14 +195,16 @@ function showSuccessMessage(good: boolean) {
         let msg = ['ЧИТЕР', 'Вау!', 'Впечатляюще', 'Отлично', 'Неплохо', 'Фух'][
                     currentRowIndex
                   ]
-        let copystr = 'Словрь ' + gameid + ': ' + msg + '\r\n' + grid
+        var rownum = 1 + currentRowIndex
+        let copystr = 'Словрь ' + gameid + ': ' + rownum + '/6\r\n' + grid
         showMessage(msg, copystr, -1)
         success = true
       }, 1600)
     } else {
       setTimeout(() => {
+        grid = genResultGrid()
         let msg = 'Потрачено! Ответ: ' + answer.toUpperCase()
-        let copystr = 'Словрь ' + gameid + ': ' + msg
+        let copystr = 'Словрь ' + gameid + ': X/6\r\n' + genResultGrid()
         showMessage(msg, copystr, -1)
       }, 1600)
     }
