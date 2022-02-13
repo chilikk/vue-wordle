@@ -6,17 +6,16 @@ import { allWords } from './all_words'
 import Keyboard from './Keyboard.vue'
 import { LetterState } from './types'
 
+let doSaveState = true
 let gameid = $ref('')
-
 let query = getQuery()
 if (query === null) {
-    const now = new Date()
-    gameid = now.toLocaleDateString('sv-SE')
-    query = getDay(now)
+    query = getDay(new Date())
+    gameid = 'день '+query
 } else {
-    gameid = query
+    gameid = 'слово '+query
+    doSaveState = false
 }
-
 
 // Get word of the day
 const answer = getWordOfTheDay(query)
@@ -51,19 +50,21 @@ let letterStates: Record<string, LetterState> = $ref({})
 
 const cookie = useCookie()
 let cont = true
-if (typeof query === 'number' && cookie.getCookie('query') == query) {
+if (doSaveState && cookie.getCookie('query') == query) {
     cont = readState(cookie)
-} else {
+} else if (doSaveState) {
     cookie.setCookie('query', query)
     saveState(cookie)
 }
 
 function saveState(cookie) {
-    cookie.setCookie('slovr_board', JSON.stringify(board))
-    cookie.setCookie('slovr_currentRowIndex', currentRowIndex)
-    cookie.setCookie('slovr_letterStates', letterStates)
-    cookie.setCookie('slovr_success', immediateSuccess)
-    cookie.setCookie('slovr_finished', finished)
+    if (doSaveState) {
+        cookie.setCookie('slovr_board', JSON.stringify(board))
+        cookie.setCookie('slovr_currentRowIndex', currentRowIndex)
+        cookie.setCookie('slovr_letterStates', letterStates)
+        cookie.setCookie('slovr_success', immediateSuccess)
+        cookie.setCookie('slovr_finished', finished)
+    }
 }
 function readState(cookie) {
     const storedState = cookie.getCookie('slovr_board')
@@ -344,7 +345,7 @@ function genResultGrid() {
   border-radius: 8px;
 }
 .copy:active {
-  background-color: #000;
+  background-color: #6aaa64;
 }
 #copyText {
   display: none;
