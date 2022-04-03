@@ -21,7 +21,8 @@ export function getQuery() {
 export function getDay(now: Date) {
   const start = new Date(2022, 1, 13)
   const diff = Number(now) - Number(start)
-  let day = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const tzdiff = (now.getTimezoneOffset() - start.getTimezoneOffset()) * 60*1000
+  let day = Math.floor((diff - tzdiff) / (1000 * 60 * 60 * 24))
   day %= answers.length
   return day+1
 }
